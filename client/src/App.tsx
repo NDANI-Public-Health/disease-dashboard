@@ -41,15 +41,6 @@ export default function App() {
       </header>
 
       <main className="dashboard">
-        <Filters
-          countries={countries}
-          diseases={diseases}
-          selectedCountry={selectedCountry}
-          selectedDisease={selectedDisease}
-          onCountryChange={setSelectedCountry}
-          onDiseaseChange={setSelectedDisease}
-        />
-
         <div className="tabs">
           {tabs.map(tab => (
             <button
@@ -65,20 +56,30 @@ export default function App() {
         {activeTab === 'overview' && <OverviewTab />}
 
         {activeTab === 'progress' && (
-          loading ? (
-            <div className="loading">Loading dashboard data...</div>
-          ) : (
-            <>
-              <SummaryCards summary={summary} />
+          <>
+            <Filters
+              countries={countries}
+              diseases={diseases}
+              selectedCountry={selectedCountry}
+              selectedDisease={selectedDisease}
+              onCountryChange={setSelectedCountry}
+              onDiseaseChange={setSelectedDisease}
+            />
+            {loading ? (
+              <div className="loading">Loading dashboard data...</div>
+            ) : (
+              <>
+                <SummaryCards summary={summary} />
 
-              <div className="charts-row">
-                <CaseChart cases={cases} />
-                <CaseMap cases={cases} />
-              </div>
+                <div className="charts-row">
+                  <CaseChart cases={cases} />
+                  <CaseMap cases={cases} />
+                </div>
 
-              <CaseTable cases={cases} />
-            </>
-          )
+                <CaseTable cases={cases} />
+              </>
+            )}
+          </>
         )}
 
         {activeTab === 'data' && <DataTab />}
