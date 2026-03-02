@@ -1,17 +1,21 @@
-import { useState } from 'react';
-import { useDashboardData } from './hooks/useDashboardData';
-import Filters from './components/Filters';
-import SummaryCards from './components/SummaryCards';
-import CaseChart from './components/CaseChart';
-import CaseMap from './components/CaseMap';
-import CaseTable from './components/CaseTable';
-import OverviewTab from './components/OverviewTab';
-import DataTab from './components/DataTab';
+import { useState } from "react";
+import { useDashboardData } from "./hooks/useDashboardData";
+import Filters from "./components/Filters";
+import SummaryCards from "./components/SummaryCards";
+import CaseChart from "./components/CaseChart";
+import CaseMap from "./components/CaseMap";
+import CaseTable from "./components/CaseTable";
+import OverviewTab from "./components/OverviewTab";
+import DataTab from "./components/DataTab";
+import DemographicsTable from "./components/DemographicsTable";
+import CasePieChart from "./components/CasePieChart";
+import CaseStackedChart from "./components/CaseStackedChart";
+import CaseCombinedChart from "./components/CaseCombinedChart";
 
-type Tab = 'overview' | 'progress' | 'data';
+type Tab = "overview" | "progress" | "data";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>('progress');
+  const [activeTab, setActiveTab] = useState<Tab>("progress");
 
   const {
     countries,
@@ -26,9 +30,9 @@ export default function App() {
   } = useDashboardData();
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'overview', label: 'Overview' },
-    { key: 'progress', label: 'Progress Dashboard' },
-    { key: 'data', label: 'Data' },
+    { key: "overview", label: "Overview" },
+    { key: "progress", label: "Progress Dashboard" },
+    { key: "data", label: "Data" },
   ];
 
   return (
@@ -36,16 +40,18 @@ export default function App() {
       <header className="header">
         <div>
           <h1>Disease Surveillance Dashboard</h1>
-          <div className="subtitle">Neglected Tropical Diseases &amp; Malaria Reporting</div>
+          <div className="subtitle">
+            Neglected Tropical Diseases &amp; Malaria Reporting
+          </div>
         </div>
       </header>
 
       <main className="dashboard">
         <div className="tabs">
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <button
               key={tab.key}
-              className={`tab-btn${activeTab === tab.key ? ' active' : ''}`}
+              className={`tab-btn${activeTab === tab.key ? " active" : ""}`}
               onClick={() => setActiveTab(tab.key)}
             >
               {tab.label}
@@ -53,9 +59,9 @@ export default function App() {
           ))}
         </div>
 
-        {activeTab === 'overview' && <OverviewTab />}
+        {activeTab === "overview" && <OverviewTab />}
 
-        {activeTab === 'progress' && (
+        {activeTab === "progress" && (
           <>
             <Filters
               countries={countries}
@@ -76,13 +82,22 @@ export default function App() {
                   <CaseMap cases={cases} />
                 </div>
 
-                <CaseTable cases={cases} />
+                <div className="charts-row">
+                  <CaseCombinedChart cases={cases} />
+                  <CaseStackedChart
+                    cases={cases}
+                    disease={selectedDisease}
+                    year={2026}
+                    country={selectedCountry}
+                  />
+                </div>
               </>
             )}
+            <CaseTable cases={cases} />
           </>
         )}
 
-        {activeTab === 'data' && <DataTab />}
+        {activeTab === "data" && <DataTab />}
       </main>
     </>
   );
