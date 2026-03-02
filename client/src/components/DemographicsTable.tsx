@@ -1,18 +1,24 @@
 import React from "react";
+import { CaseRecord } from "../types";
 
 const years = [
   2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026,
 ];
 
-const DemographicsTable = () => {
+interface DemographicsTableProps {
+  cases: CaseRecord[];
+  year?: number;
+}
+
+const DemographicsTable = ({ cases, year }: DemographicsTableProps) => {
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       {/* Header with year selector - primary color */}
       <div className="flex items-center justify-between p-2 bg-primary text-white">
-        <h2 className="text-lg font-semibold">Key statistics for</h2>
+        <h2 className="text-lg font-semibold">Key statistics for </h2>
         <select className="px-3 py-2 border border-blue-400 rounded-md text-sm bg-yellow-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-300">
           {years.map((year) => (
-            <option key={year} value={year}>
+            <option key={year} value={year} defaultValue={year}>
               {year}
             </option>
           ))}

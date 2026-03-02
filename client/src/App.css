@@ -8,6 +8,7 @@
   --color-primary: #39536b;
   --color-primary-light: #4a6a87;
   --color-primary-dark: #2a3f52;
+  --color-secondary: #1f638e;
 }
 
 /* Tailwind's Preflight already handles box-sizing reset */
@@ -46,7 +47,7 @@ body {
 
 /* Main container */
 .dashboard {
-  max-width: 1400px;
+  max-width: 80vw;
   margin: 0 auto;
   padding: 24px;
 }

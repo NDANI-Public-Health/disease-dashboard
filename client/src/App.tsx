@@ -42,15 +42,6 @@ export default function App() {
 
   return (
     <>
-      <header className="header">
-        <div>
-          <h1>Disease Surveillance Dashboard</h1>
-          <div className="subtitle">
-            Neglected Tropical Diseases &amp; Malaria Reporting
-          </div>
-        </div>
-      </header>
-
       <main className="dashboard">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
           <Filters
@@ -61,8 +52,8 @@ export default function App() {
             onCountryChange={setSelectedCountry}
             onDiseaseChange={setSelectedDisease}
           />
-          <div className="flex gap-4 ml-auto flex-shrink-0">
-            Dashboard
+          <div className="flex items-center gap-4 ml-auto shrink-0">
+            <span className="text-gray-700 font-medium">Dashboard</span>
             {checkboxOptions.map((option) => (
               <label
                 key={option.key}
@@ -79,69 +70,58 @@ export default function App() {
                 </span>
               </label>
             ))}
+            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 transition-colors">
+              Update
+            </button>
           </div>
         </div>
+        {loading ? (
+          <div className="loading">Loading dashboard data...</div>
+        ) : (
+          <>
+            <h1 className="text-5xl font-bold mb-2 border-l-4 border-amber-400 pl-2">
+              Dashboards
+            </h1>
+            <p className="text-gray-600 mb-4">
+              Please select a <span className="font-semibold">Country</span> and{" "}
+              <span className="font-semibold">Disease</span>, and either{" "}
+              <span className="font-semibold">Progress</span> or
+              <span className="font-semibold"> Forecast</span> and click
+              <span className="font-semibold"> Update</span> to view the
+              dashboard.
+            </p>
 
-        <div className="tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              className={`tab-btn${activeTab === tab.key ? " active" : ""}`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <DemographicsTable cases={cases} year={2026} />
+              <CasePieChart
+                cases={cases}
+                year={2026}
+                labels={[
+                  "Population requiring PC that received PC",
+                  "Population requiring PC that did not receive PC",
+                ]}
+                country={selectedCountry}
+                disease={selectedDisease}
+              />
+            </div>
 
-        {activeTab === "overview" && <OverviewTab />}
+            <div className="charts-row">
+              <CaseCombinedChart
+                cases={cases}
+                country={selectedCountry}
+                disease={selectedDisease}
+              />
+              <CaseStackedChart
+                cases={cases}
+                disease={selectedDisease}
+                year={2026}
+                country={selectedCountry}
+              />
+            </div>
 
-        {activeTab === "progress" &&
-          (loading ? (
-            <div className="loading">Loading dashboard data...</div>
-          ) : (
-            <>
-              <h1 className="text-2xl font-bold mb-2">Dashboards</h1>
-              <p className="text-gray-600 mb-4">
-                Please select a <span className="font-semibold">Country</span>{" "}
-                and <span className="font-semibold">Disease</span>, and either{" "}
-                <span className="font-semibold">Progress</span> or
-                <span className="font-semibold"> Forecast</span> and click
-                <span className="font-semibold"> Update</span> to view the
-                dashboard.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <DemographicsTable />
-                <CasePieChart
-                  cases={cases}
-                  year={2026}
-                  labels={[
-                    "Population requiring PC that received PC",
-                    "Population requiring PC that did not receive PC",
-                  ]}
-                  country={selectedCountry}
-                  disease={selectedDisease}
-                />
-              </div>
-
-              <div className="charts-row">
-                <CaseCombinedChart cases={cases} />
-                <CaseStackedChart
-                  cases={cases}
-                  disease={selectedDisease}
-                  year={2026}
-                  country={selectedCountry}
-                />
-              </div>
-
-              <CaseMap cases={cases} />
-
-              {/* <CaseTable cases={cases} /> */}
-            </>
-          ))}
-
-        {activeTab === "data" && <DataTab />}
+            <CaseMap cases={cases} />
+          </>
+        )}
       </main>
     </>
   );
