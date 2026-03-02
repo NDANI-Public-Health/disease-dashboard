@@ -67,6 +67,25 @@ disease-dashboard/
 
 - Node.js >= 18
 - npm >= 9
+- PostgreSQL database (accessed via SSH tunnel or direct connection)
+
+### Environment Variables
+
+Copy the example env file and fill in your credentials:
+
+```bash
+cp server/.env.example server/.env
+```
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `DB_HOST` | PostgreSQL host | `127.0.0.1` |
+| `DB_PORT` | PostgreSQL port | `5432` |
+| `DB_NAME` | Database name | `espen_ntd_analysis` |
+| `DB_USER` | Database username | — |
+| `DB_PASSWORD` | Database password | — |
+
+If connecting through an SSH tunnel, start the tunnel first so the database is reachable on `DB_HOST:DB_PORT`.
 
 ### Install
 
