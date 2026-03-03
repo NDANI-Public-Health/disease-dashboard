@@ -36,3 +36,21 @@ export interface AggKeyStatsResponse {
   };
   data: AggKeyStat[];
 }
+
+export interface AggGeoCoverage {
+  year: number;
+  endemicityLevel: string;
+  endemicityLabel: string;
+  colorHex: string;
+  iuRequiringPc: number;
+  iuReceivedPc: number;
+  geoCoveragePct: number;
+}
+
+export interface AggGeoCoverageResponse {
+  meta: {
+    years: number[];
+    endemicityLevels: string[];
+  };
+  data: AggGeoCoverage[];
+}
