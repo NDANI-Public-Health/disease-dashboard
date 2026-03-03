@@ -1,7 +1,7 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import express from 'express';
 import request from 'supertest';
-import 'dotenv/config';
+
 import aggKeyStatsRouter from './index';
 import pool from '../../db';
 
