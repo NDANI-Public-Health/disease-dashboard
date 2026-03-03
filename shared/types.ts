@@ -69,3 +69,37 @@ export interface AggCoverageTrendsResponse {
   };
   data: AggCoverageTrend[];
 }
+
+export interface AggSupplyDelay {
+  year: number;
+  deliveryDelayDays: number;
+}
+
+export interface AggSupplyDelayResponse {
+  meta: {
+    years: number[];
+  };
+  data: AggSupplyDelay[];
+}
+
+export interface AggEffectiveRound {
+  iuId: number;
+  iuName: string;
+  state: string;
+  country: string;
+  totalMdaRounds: number;
+  effectiveRounds: number;
+  ineffectiveRounds: number;
+  latestYear: number;
+  latestEndemicity: string;
+  latestCoverage: number | null;
+  hasTransmissionRisk: boolean;
+}
+
+export interface AggEffectiveRoundsResponse {
+  meta: {
+    states: string[];
+    endemicities: string[];
+  };
+  data: AggEffectiveRound[];
+}
