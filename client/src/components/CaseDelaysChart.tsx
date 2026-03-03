@@ -51,7 +51,7 @@ export const CaseDelaysChart: React.FC<CaseDelaysChartProps> = ({
       bar: {
         horizontal: false,
         columnWidth: "60%",
-        borderRadius: 4,
+        borderRadius: 0,
         colors: {
           ranges: [
             {
@@ -69,7 +69,16 @@ export const CaseDelaysChart: React.FC<CaseDelaysChartProps> = ({
       },
     },
     dataLabels: {
-      enabled: false,
+      enabled: true,
+      formatter: (val: number) => {
+        return val.toString();
+      },
+      offsetY: -20,
+      style: {
+        fontSize: "12px",
+        fontWeight: "bold",
+        colors: ["#333"],
+      },
     },
     stroke: {
       show: true,
@@ -174,7 +183,7 @@ export const CaseDelaysChart: React.FC<CaseDelaysChartProps> = ({
   }
 
   return (
-    <div className="w-full m-4">
+    <div className="w-full mt-4 mb-4">
       <Chart options={options} series={series} type="bar" height={550} />
     </div>
   );
