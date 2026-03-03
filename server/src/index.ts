@@ -25,8 +25,8 @@ app.use('/api', aggSupplyDelayRouter);
 app.use('/api', aggEffectiveRoundsRouter);
 app.use('/api', aggSacCoverageRouter);
 
-// Serve static files in production
-const clientDist = path.join(__dirname, '../../client/dist');
+// Serve static files in production — resolve from cwd (project root)
+const clientDist = path.resolve(process.cwd(), 'client/dist');
 app.use(express.static(clientDist));
 
 // SPA fallback
