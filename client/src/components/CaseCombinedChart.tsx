@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef } from "react";
 import Chart from "react-apexcharts";
 import { CaseRecord } from "../types";
+import { useCoverageData } from "../hooks/useCoverageData";
 
 interface CaseCombinedChartProps {
   cases: CaseRecord[];
@@ -19,158 +20,54 @@ export default function CaseCombinedChart({
 }: CaseCombinedChartProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const chartRef = useRef<ApexCharts | null>(null);
+  const { data: coverageData, loading } = useCoverageData({
+    country,
+    disease,
+    year,
+  });
 
-  // Process cases data to extract metrics by year
+  // Process coverage data from API
   const { categories, chartData } = useMemo(() => {
-    // Filter by disease if specified
-    let filteredCases =
-      disease && disease !== "all diseases"
-        ? cases.filter((c) => c.disease === disease)
-        : cases;
-
-    // Filter by country if specified
-    if (country) {
-      filteredCases = filteredCases.filter((c) => c.country === country);
-    }
-
     // Generate years from 2014-2024
     const years = Array.from({ length: 11 }, (_, i) => 2014 + i);
     const yearStrings = years.map((y) => y.toString());
 
-    // Calculate metrics for each year
-    const programmeAdultCoverage: number[] = [];
-    const programmeTotalCoverage: number[] = [];
-    const nationalAdultCoverage: number[] = [];
-    const nationalTotalCoverage: number[] = [];
+    // Use coverage data from API
+    const programmeSacCoverage: (number | null)[] = [];
+    const nationalSacCoverage: (number | null)[] = [];
     const uisRequiringTreatment: number[] = [];
     const uisTreated: number[] = [];
     const uisAchievingEffectiveCoverage: number[] = [];
 
-    // Seed for consistent random generation
-    const seededRandom = (seed: number): number => {
-      const x = Math.sin(seed) * 10000;
-      return x - Math.floor(x);
-    };
-
     for (let i = 0; i < years.length; i++) {
       const y = years[i];
-      const yearCases = filteredCases.filter((c) => c.year === y);
 
-      // Calculate population metrics
-      const totalPopulation =
-        yearCases.length > 0
-          ? yearCases.reduce((sum, c) => sum + c.population, 0)
-          : 100000000; // Default population for years without data
+      // Get coverage data from API for this year
+      const yearCoverageData = coverageData.find((d) => d.year === y);
 
-      const totalTreated = yearCases.reduce((sum, c) => sum + c.cases, 0);
+      // Use API data for coverage percentages
+      programmeSacCoverage.push(yearCoverageData?.progSacCovPct ?? null);
+      nationalSacCoverage.push(yearCoverageData?.natSacCovPct ?? null);
 
-      // Simulate population breakdown (adults ~60% of total population)
-      const adultPopulationRatio = 0.6;
-      const popTotalEveryone = totalPopulation;
-      const popTotalAdults = Math.floor(totalPopulation * adultPopulationRatio);
-
-      // PopTrg (Programme Target Population) - typically 70-85% of total
-      const targetRatio = 0.7 + seededRandom(y * 100) * 0.15;
-      const popTrgEveryone = Math.floor(popTotalEveryone * targetRatio);
-      const popTrgAdults = Math.floor(popTotalAdults * targetRatio);
-
-      // PopReq (Required Population) - national level requirement, typically 80-95% of total
-      const reqRatio = 0.8 + seededRandom(y * 200) * 0.15;
-      const popReqEveryone = Math.floor(popTotalEveryone * reqRatio);
-      const popReqAdults = Math.floor(popTotalAdults * reqRatio);
-
-      // PopTreat (Treated Population) - simulate based on actual data with year progression
-      // Coverage generally improves over time (2014-2024)
-      const yearProgress = (y - 2014) / 10; // 0 to 1 over the decade
-      const baseTreatmentRatio = 0.3 + yearProgress * 0.45; // 30% to 75% over time
-      const treatmentVariation = seededRandom(y * 300) * 0.1 - 0.05;
-      const treatmentRatio = Math.min(
-        Math.max(baseTreatmentRatio + treatmentVariation, 0.2),
-        0.9,
+      // Use API data for IU metrics
+      uisRequiringTreatment.push(yearCoverageData?.iuRequiringTreatment ?? 0);
+      uisTreated.push(yearCoverageData?.iuTreated ?? 0);
+      uisAchievingEffectiveCoverage.push(
+        yearCoverageData?.iuEffectiveCoverage ?? 0,
       );
-
-      const popTreatEveryone =
-        yearCases.length > 0
-          ? totalTreated
-          : Math.floor(popTotalEveryone * treatmentRatio);
-      const popTreatAdults = Math.floor(
-        popTreatEveryone *
-          adultPopulationRatio *
-          (1 + seededRandom(y * 400) * 0.1),
-      );
-
-      // Calculate coverage percentages
-      // Programme Adult Coverage: (PopTreat (adults) / PopTrg (adults)) * 100%
-      const progAdultCov =
-        popTrgAdults > 0
-          ? Math.min((popTreatAdults / popTrgAdults) * 100, 100)
-          : 0;
-      programmeAdultCoverage.push(progAdultCov);
-
-      // Programme Total Coverage: (PopTreat (everyone) / PopTrg (everyone)) * 100%
-      const progTotalCov =
-        popTrgEveryone > 0
-          ? Math.min((popTreatEveryone / popTrgEveryone) * 100, 100)
-          : 0;
-      programmeTotalCoverage.push(progTotalCov);
-
-      // National Adult Coverage: (PopTreat (adults) / PopReq (adults)) * 100%
-      const natAdultCov =
-        popReqAdults > 0
-          ? Math.min((popTreatAdults / popReqAdults) * 100, 100)
-          : 0;
-      nationalAdultCoverage.push(natAdultCov);
-
-      // National Total Coverage: (PopTreat (everyone) / PopReq (everyone)) * 100%
-      const natTotalCov =
-        popReqEveryone > 0
-          ? Math.min((popTreatEveryone / popReqEveryone) * 100, 100)
-          : 0;
-      nationalTotalCoverage.push(natTotalCov);
-
-      // UIs (Implementation Units) metrics
-      const totalUIs = Math.max(
-        yearCases.length,
-        Math.floor(10 + yearProgress * 20),
-      );
-
-      // UIs requiring treatment (count)
-      const uisNeedingTreatment =
-        yearCases.length > 0
-          ? yearCases.filter((c) => c.prevalence >= 0.01).length
-          : Math.floor(totalUIs * (0.7 + seededRandom(y * 500) * 0.2));
-      uisRequiringTreatment.push(uisNeedingTreatment);
-
-      // UIs treated (count of UIs with cases > 0)
-      const uisTreatedCount =
-        yearCases.length > 0
-          ? yearCases.filter((c) => c.cases > 0).length
-          : Math.floor(uisNeedingTreatment * treatmentRatio);
-      uisTreated.push(uisTreatedCount);
-
-      // UIs achieving effective coverage (>75% coverage)
-      const uisEffective =
-        yearCases.length > 0
-          ? yearCases.filter(
-              (c) => c.population > 0 && c.cases / c.population >= 0.75,
-            ).length
-          : Math.floor(uisTreatedCount * (0.3 + yearProgress * 0.4));
-      uisAchievingEffectiveCoverage.push(uisEffective);
     }
 
     return {
       categories: yearStrings,
       chartData: {
-        programmeAdultCoverage,
-        programmeTotalCoverage,
-        nationalAdultCoverage,
-        nationalTotalCoverage,
+        programmeSacCoverage,
+        nationalSacCoverage,
         uisRequiringTreatment,
         uisTreated,
         uisAchievingEffectiveCoverage,
       },
     };
-  }, [cases, disease, country]);
+  }, [coverageData]);
 
   const handleDownloadImage = () => {
     if (chartRef.current) {
@@ -212,37 +109,27 @@ export default function CaseCombinedChart({
   const series = useMemo(
     () => [
       {
-        name: "Programme Adult Coverage",
+        name: "Programme SAC Coverage",
         type: "line",
-        data: chartData.programmeAdultCoverage,
+        data: chartData.programmeSacCoverage,
       },
       {
-        name: "Programme Total Coverage",
+        name: "National SAC Coverage",
         type: "line",
-        data: chartData.programmeTotalCoverage,
+        data: chartData.nationalSacCoverage,
       },
       {
-        name: "National Adult Coverage",
-        type: "line",
-        data: chartData.nationalAdultCoverage,
-      },
-      {
-        name: "National Total Coverage",
-        type: "line",
-        data: chartData.nationalTotalCoverage,
-      },
-      {
-        name: "UIs requiring treatment",
+        name: "IUs requiring treatment",
         type: "column",
         data: chartData.uisRequiringTreatment,
       },
       {
-        name: "UIs treated",
+        name: "IUs treated",
         type: "column",
         data: chartData.uisTreated,
       },
       {
-        name: "UIs achieving effective coverage",
+        name: "IUs achieving effective coverage",
         type: "column",
         data: chartData.uisAchievingEffectiveCoverage,
       },
@@ -258,7 +145,7 @@ export default function CaseCombinedChart({
       stacked: false,
     },
     stroke: {
-      width: [3, 3, 3, 3, 0, 0, 0],
+      width: [3, 3, 0, 0, 0],
       curve: "smooth",
     },
     plotOptions: {
@@ -268,19 +155,17 @@ export default function CaseCombinedChart({
       },
     },
     colors: [
-      "#d86422", // Programme Adult Coverage
-      "#fac916", // Programme Total Coverage
-      "#2ecc71", // National Adult Coverage
-      "#9b59b6", // National Total Coverage
-      "#e9f1f7", // UIs requiring treatment
-      "#3daeff", // UIs treated
-      "#202f5d", // UIs achieving effective coverage
+      "#d86422", // Programme SAC Coverage
+      "#2ecc71", // National SAC Coverage
+      "#e9f1f7", // IUs requiring treatment
+      "#3daeff", // IUs treated
+      "#202f5d", // IUs achieving effective coverage
     ],
     fill: {
-      opacity: [1, 1, 1, 1, 0.85, 0.85, 0.85],
+      opacity: [1, 1, 0.85, 0.85, 0.85],
     },
     markers: {
-      size: [4, 4, 4, 4, 0, 0, 0],
+      size: [4, 4, 0, 0, 0],
       strokeWidth: 2,
       hover: {
         size: 6,
@@ -338,12 +223,12 @@ export default function CaseCombinedChart({
       intersect: false,
       y: {
         formatter: (val: number, { seriesIndex }) => {
-          // First 4 series are coverage lines (percentages)
-          if (seriesIndex < 4) {
-            return `${val.toFixed(1)}%`;
+          // First 2 series are coverage lines (percentages)
+          if (seriesIndex < 2) {
+            return val !== null ? `${val.toFixed(1)}%` : "N/A";
           }
           // Last 3 series are implementation units (numbers)
-          return val.toFixed(0) + " UIs";
+          return val.toFixed(0) + " IUs";
         },
       },
     },
@@ -352,6 +237,21 @@ export default function CaseCombinedChart({
       strokeDashArray: 4,
     },
   };
+
+  if (loading) {
+    return (
+      <div className="chart-container overflow-hidden">
+        <div className="bg-primary p-2 -mx-5 -mt-5 mb-4">
+          <h3 className="text-lg font-semibold text-white">
+            {title || `PC Coverage Trends Over Time`}
+          </h3>
+        </div>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="chart-container overflow-hidden">

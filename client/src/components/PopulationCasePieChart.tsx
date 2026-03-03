@@ -1,9 +1,10 @@
 import { useMemo, useState, useRef } from "react";
 import Chart from "react-apexcharts";
 import { CaseRecord } from "../types";
+import { usePieChartData } from "../hooks/usePieChartData";
 
-interface CasePieChartProps {
-  cases: CaseRecord[];
+interface PopulationCasePieChartProps {
+  cases?: CaseRecord[];
   year?: number;
   labels?: string[];
   country?: string;
@@ -11,16 +12,21 @@ interface CasePieChartProps {
   title?: string;
 }
 
-export default function CasePieChart({
+export default function PopulationCasePieChart({
   cases,
   year = 2024,
-  labels,
+  labels = ["Pop targeted treated", "Pop targeted not treated"],
   country,
   disease = "all diseases",
   title,
-}: CasePieChartProps) {
+}: PopulationCasePieChartProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const chartRef = useRef<ApexCharts | null>(null);
+  const { targetVsTreatedData, loading } = usePieChartData({
+    country,
+    disease,
+    year,
+  });
 
   const handleDownloadImage = () => {
     if (chartRef.current) {
@@ -61,33 +67,27 @@ export default function CasePieChart({
   };
 
   const { seriesData, totalPopulation } = useMemo(() => {
-    // Filter cases by year if needed
-    let filteredCases = cases.filter((c) => c.year === year);
-
-    // If country is specified, further filter by country
-    if (country) {
-      filteredCases = filteredCases.filter((c) => c.country === country);
-    }
-
-    // If no data for the specified year, use all cases
-    if (filteredCases.length === 0) {
-      filteredCases = cases;
-    }
-
-    // Calculate total population requiring PC
-    const totalPop = filteredCases.reduce((sum, c) => sum + c.population, 0);
-
-    // Calculate population that received PC (using cases as proxy for treated)
-    const receivedPC = filteredCases.reduce((sum, c) => sum + c.cases, 0);
-
-    // Population that did not receive PC
-    const notReceivedPC = Math.max(0, totalPop - receivedPC);
-
+    // Use targetVsTreatedData from the API (Total targetPop)
     return {
-      seriesData: [receivedPC, notReceivedPC],
-      totalPopulation: totalPop,
+      seriesData: [targetVsTreatedData.treated, targetVsTreatedData.notTreated],
+      totalPopulation: targetVsTreatedData.targeted,
     };
-  }, [cases, year, country, labels]);
+  }, [targetVsTreatedData]);
+
+  if (loading) {
+    return (
+      <div className="chart-container overflow-hidden">
+        <div className="bg-primary p-2 -mx-5 -mt-5 mb-4">
+          <h3 className="text-lg font-semibold text-white">
+            {title || `Population Targeted vs Treated`}
+          </h3>
+        </div>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   const options: ApexCharts.ApexOptions = {
     chart: {

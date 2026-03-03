@@ -1,18 +1,13 @@
 import { useState } from "react";
 import { useDashboardData } from "./hooks/useDashboardData";
 import Filters from "./components/Filters";
-import SummaryCards from "./components/SummaryCards";
-import CaseChart from "./components/CaseChart";
 import CaseMap from "./components/CaseMap";
-import CaseTable from "./components/CaseTable";
-import OverviewTab from "./components/OverviewTab";
-import DataTab from "./components/DataTab";
-import DemographicsTable from "./components/DemographicsTable";
-import CasePieChart from "./components/CasePieChart";
 import CaseStackedChart from "./components/CaseStackedChart";
 import CaseCombinedChart from "./components/CaseCombinedChart";
 import CoverageDataTable from "./components/CoverageDataTable";
 import EndemicityTable from "./components/EndemicityTable";
+import NationalCasePieChart from "./components/NationalCasePieChart";
+import PopulationCasePieChart from "./components/PopulationCasePieChart";
 
 type Tab = "overview" | "progress" | "data";
 
@@ -97,20 +92,20 @@ export default function App() {
               <CoverageDataTable
                 country={selectedCountry}
                 disease={selectedDisease}
-                year={2026}
+                year={2024}
               />
               <EndemicityTable
                 country={selectedCountry}
                 disease={selectedDisease}
-                year={2026}
+                year={2024}
               />
               {/* <DemographicsTable cases={cases} year={2026} /> */}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <CasePieChart
+              <NationalCasePieChart
                 cases={cases}
-                year={2026}
+                year={2024}
                 title="National PC Coverage"
                 labels={[
                   "Population requiring PC that received PC",
@@ -119,9 +114,9 @@ export default function App() {
                 country={selectedCountry}
                 disease={selectedDisease}
               />
-              <CasePieChart
+              <PopulationCasePieChart
                 cases={cases}
-                year={2026}
+                year={2024}
                 title="Population requiring PC that received PC vs. Population that was target for PC"
                 labels={[
                   "Total population that was target for PC",
