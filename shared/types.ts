@@ -15,3 +15,24 @@ export interface SummaryStats {
   countriesAffected: number;
   avgPrevalence: number;
 }
+
+export interface AggKeyStat {
+  year: number;
+  targetPop: string;
+  popReq: number;
+  popTrg: number;
+  popTreat: number;
+  popReqReceived: number;
+  popReqNotReceived: number;
+  popNotTreat: number;
+  progCovPct: number | null;
+  natCovPct: number | null;
+}
+
+export interface AggKeyStatsResponse {
+  meta: {
+    years: number[];
+    targetPops: string[];
+  };
+  data: AggKeyStat[];
+}
