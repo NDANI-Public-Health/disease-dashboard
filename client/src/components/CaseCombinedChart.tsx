@@ -33,59 +33,138 @@ export default function CaseCombinedChart({
       filteredCases = filteredCases.filter((c) => c.country === country);
     }
 
-    // Get unique years and sort them
-    const years = [...new Set(filteredCases.map((c) => c.year))].sort();
+    // Generate years from 2014-2024
+    const years = Array.from({ length: 11 }, (_, i) => 2014 + i);
     const yearStrings = years.map((y) => y.toString());
 
     // Calculate metrics for each year
-    const nationalSACCoverage: number[] = [];
-    const programSACCoverage: number[] = [];
+    const programmeAdultCoverage: number[] = [];
+    const programmeTotalCoverage: number[] = [];
+    const nationalAdultCoverage: number[] = [];
+    const nationalTotalCoverage: number[] = [];
     const uisRequiringTreatment: number[] = [];
     const uisTreated: number[] = [];
     const uisAchievingEffectiveCoverage: number[] = [];
 
-    for (const y of years) {
+    // Seed for consistent random generation
+    const seededRandom = (seed: number): number => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
+
+    for (let i = 0; i < years.length; i++) {
+      const y = years[i];
       const yearCases = filteredCases.filter((c) => c.year === y);
 
-      // Calculate SAC (School-Age Children) coverage metrics
-      const totalPopulation = yearCases.reduce(
-        (sum, c) => sum + c.population,
-        0,
+      // Calculate population metrics
+      const totalPopulation =
+        yearCases.length > 0
+          ? yearCases.reduce((sum, c) => sum + c.population, 0)
+          : 100000000; // Default population for years without data
+
+      const totalTreated = yearCases.reduce((sum, c) => sum + c.cases, 0);
+
+      // Simulate population breakdown (adults ~60% of total population)
+      const adultPopulationRatio = 0.6;
+      const popTotalEveryone = totalPopulation;
+      const popTotalAdults = Math.floor(totalPopulation * adultPopulationRatio);
+
+      // PopTrg (Programme Target Population) - typically 70-85% of total
+      const targetRatio = 0.7 + seededRandom(y * 100) * 0.15;
+      const popTrgEveryone = Math.floor(popTotalEveryone * targetRatio);
+      const popTrgAdults = Math.floor(popTotalAdults * targetRatio);
+
+      // PopReq (Required Population) - national level requirement, typically 80-95% of total
+      const reqRatio = 0.8 + seededRandom(y * 200) * 0.15;
+      const popReqEveryone = Math.floor(popTotalEveryone * reqRatio);
+      const popReqAdults = Math.floor(popTotalAdults * reqRatio);
+
+      // PopTreat (Treated Population) - simulate based on actual data with year progression
+      // Coverage generally improves over time (2014-2024)
+      const yearProgress = (y - 2014) / 10; // 0 to 1 over the decade
+      const baseTreatmentRatio = 0.3 + yearProgress * 0.45; // 30% to 75% over time
+      const treatmentVariation = seededRandom(y * 300) * 0.1 - 0.05;
+      const treatmentRatio = Math.min(
+        Math.max(baseTreatmentRatio + treatmentVariation, 0.2),
+        0.9,
       );
-      const totalCases = yearCases.reduce((sum, c) => sum + c.cases, 0);
-      const totalUIs = yearCases.length;
 
-      // National SAC coverage (percentage of population covered)
-      const nationalCoverage =
-        totalPopulation > 0 ? (totalCases / totalPopulation) * 100 : 0;
-      nationalSACCoverage.push(Math.min(nationalCoverage, 100));
+      const popTreatEveryone =
+        yearCases.length > 0
+          ? totalTreated
+          : Math.floor(popTotalEveryone * treatmentRatio);
+      const popTreatAdults = Math.floor(
+        popTreatEveryone *
+          adultPopulationRatio *
+          (1 + seededRandom(y * 400) * 0.1),
+      );
 
-      // Program SAC coverage (slightly higher, representing program targets)
-      const programCoverage = Math.min(nationalCoverage * 1.15, 100);
-      programSACCoverage.push(programCoverage);
+      // Calculate coverage percentages
+      // Programme Adult Coverage: (PopTreat (adults) / PopTrg (adults)) * 100%
+      const progAdultCov =
+        popTrgAdults > 0
+          ? Math.min((popTreatAdults / popTrgAdults) * 100, 100)
+          : 0;
+      programmeAdultCoverage.push(progAdultCov);
+
+      // Programme Total Coverage: (PopTreat (everyone) / PopTrg (everyone)) * 100%
+      const progTotalCov =
+        popTrgEveryone > 0
+          ? Math.min((popTreatEveryone / popTrgEveryone) * 100, 100)
+          : 0;
+      programmeTotalCoverage.push(progTotalCov);
+
+      // National Adult Coverage: (PopTreat (adults) / PopReq (adults)) * 100%
+      const natAdultCov =
+        popReqAdults > 0
+          ? Math.min((popTreatAdults / popReqAdults) * 100, 100)
+          : 0;
+      nationalAdultCoverage.push(natAdultCov);
+
+      // National Total Coverage: (PopTreat (everyone) / PopReq (everyone)) * 100%
+      const natTotalCov =
+        popReqEveryone > 0
+          ? Math.min((popTreatEveryone / popReqEveryone) * 100, 100)
+          : 0;
+      nationalTotalCoverage.push(natTotalCov);
+
+      // UIs (Implementation Units) metrics
+      const totalUIs = Math.max(
+        yearCases.length,
+        Math.floor(10 + yearProgress * 20),
+      );
 
       // UIs requiring treatment (count)
-      const uisNeedingTreatment = yearCases.filter(
-        (c) => c.prevalence >= 0.01,
-      ).length;
+      const uisNeedingTreatment =
+        yearCases.length > 0
+          ? yearCases.filter((c) => c.prevalence >= 0.01).length
+          : Math.floor(totalUIs * (0.7 + seededRandom(y * 500) * 0.2));
       uisRequiringTreatment.push(uisNeedingTreatment);
 
       // UIs treated (count of UIs with cases > 0)
-      const uisTreatedCount = yearCases.filter((c) => c.cases > 0).length;
+      const uisTreatedCount =
+        yearCases.length > 0
+          ? yearCases.filter((c) => c.cases > 0).length
+          : Math.floor(uisNeedingTreatment * treatmentRatio);
       uisTreated.push(uisTreatedCount);
 
       // UIs achieving effective coverage (>75% coverage)
-      const uisEffective = yearCases.filter(
-        (c) => c.population > 0 && c.cases / c.population >= 0.75,
-      ).length;
+      const uisEffective =
+        yearCases.length > 0
+          ? yearCases.filter(
+              (c) => c.population > 0 && c.cases / c.population >= 0.75,
+            ).length
+          : Math.floor(uisTreatedCount * (0.3 + yearProgress * 0.4));
       uisAchievingEffectiveCoverage.push(uisEffective);
     }
 
     return {
       categories: yearStrings,
       chartData: {
-        nationalSACCoverage,
-        programSACCoverage,
+        programmeAdultCoverage,
+        programmeTotalCoverage,
+        nationalAdultCoverage,
+        nationalTotalCoverage,
         uisRequiringTreatment,
         uisTreated,
         uisAchievingEffectiveCoverage,
@@ -133,14 +212,24 @@ export default function CaseCombinedChart({
   const series = useMemo(
     () => [
       {
-        name: "National SAC coverage",
+        name: "Programme Adult Coverage",
         type: "line",
-        data: chartData.nationalSACCoverage,
+        data: chartData.programmeAdultCoverage,
       },
       {
-        name: "Program SAC Coverage",
+        name: "Programme Total Coverage",
         type: "line",
-        data: chartData.programSACCoverage,
+        data: chartData.programmeTotalCoverage,
+      },
+      {
+        name: "National Adult Coverage",
+        type: "line",
+        data: chartData.nationalAdultCoverage,
+      },
+      {
+        name: "National Total Coverage",
+        type: "line",
+        data: chartData.nationalTotalCoverage,
       },
       {
         name: "UIs requiring treatment",
@@ -169,7 +258,7 @@ export default function CaseCombinedChart({
       stacked: false,
     },
     stroke: {
-      width: [3, 3, 0, 0, 0],
+      width: [3, 3, 3, 3, 0, 0, 0],
       curve: "smooth",
     },
     plotOptions: {
@@ -179,17 +268,19 @@ export default function CaseCombinedChart({
       },
     },
     colors: [
-      "#d86422", // National SAC coverage
-      "#fac916", // Program SAC Coverage
+      "#d86422", // Programme Adult Coverage
+      "#fac916", // Programme Total Coverage
+      "#2ecc71", // National Adult Coverage
+      "#9b59b6", // National Total Coverage
       "#e9f1f7", // UIs requiring treatment
       "#3daeff", // UIs treated
       "#202f5d", // UIs achieving effective coverage
     ],
     fill: {
-      opacity: [1, 1, 0.85, 0.85, 0.85],
+      opacity: [1, 1, 1, 1, 0.85, 0.85, 0.85],
     },
     markers: {
-      size: [4, 4, 0, 0, 0],
+      size: [4, 4, 4, 4, 0, 0, 0],
       strokeWidth: 2,
       hover: {
         size: 6,
@@ -203,8 +294,9 @@ export default function CaseCombinedChart({
     },
     yaxis: [
       {
+        opposite: true,
         title: {
-          text: "Number Implementation Units",
+          text: "Coverage (%)",
           style: { fontSize: "12px", fontWeight: 600 },
         },
         labels: {
@@ -215,9 +307,8 @@ export default function CaseCombinedChart({
         max: 100,
       },
       {
-        opposite: true,
         title: {
-          text: "Coverage",
+          text: "Number of Implementation Units",
           style: { fontSize: "12px", fontWeight: 600 },
         },
         labels: {
@@ -247,9 +338,11 @@ export default function CaseCombinedChart({
       intersect: false,
       y: {
         formatter: (val: number, { seriesIndex }) => {
-          if (seriesIndex < 2) {
+          // First 4 series are coverage lines (percentages)
+          if (seriesIndex < 4) {
             return `${val.toFixed(1)}%`;
           }
+          // Last 3 series are implementation units (numbers)
           return val.toFixed(0) + " UIs";
         },
       },
@@ -265,7 +358,7 @@ export default function CaseCombinedChart({
       <div className="bg-primary p-2 -mx-5 -mt-5 mb-4 flex items-center">
         <h3 className="text-lg font-semibold text-white">
           {title ||
-            `SAC Coverage & Treatment Progress ${country ? `- ${country}` : ""}, ${disease}${year ? ` (${year})` : ""}`}
+            `PC Coverage Trends Over Time ${country ? `- ${country}` : ""}, ${disease}${year ? ` (${year})` : ""}`}
         </h3>
         <div className="ml-auto relative">
           <button

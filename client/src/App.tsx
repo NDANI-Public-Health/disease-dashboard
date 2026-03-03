@@ -11,6 +11,8 @@ import DemographicsTable from "./components/DemographicsTable";
 import CasePieChart from "./components/CasePieChart";
 import CaseStackedChart from "./components/CaseStackedChart";
 import CaseCombinedChart from "./components/CaseCombinedChart";
+import CoverageDataTable from "./components/CoverageDataTable";
+import EndemicityTable from "./components/EndemicityTable";
 
 type Tab = "overview" | "progress" | "data";
 
@@ -92,13 +94,38 @@ export default function App() {
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <DemographicsTable cases={cases} year={2026} />
+              <CoverageDataTable
+                country={selectedCountry}
+                disease={selectedDisease}
+                year={2026}
+              />
+              <EndemicityTable
+                country={selectedCountry}
+                disease={selectedDisease}
+                year={2026}
+              />
+              {/* <DemographicsTable cases={cases} year={2026} /> */}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <CasePieChart
                 cases={cases}
                 year={2026}
+                title="National PC Coverage"
                 labels={[
                   "Population requiring PC that received PC",
                   "Population requiring PC that did not receive PC",
+                ]}
+                country={selectedCountry}
+                disease={selectedDisease}
+              />
+              <CasePieChart
+                cases={cases}
+                year={2026}
+                title="Population requiring PC that received PC vs. Population that was target for PC"
+                labels={[
+                  "Total population that was target for PC",
+                  "Total population that was treated",
                 ]}
                 country={selectedCountry}
                 disease={selectedDisease}

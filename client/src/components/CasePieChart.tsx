@@ -88,6 +88,7 @@ export default function CasePieChart({
       totalPopulation: totalPop,
     };
   }, [cases, year, country, labels]);
+
   const options: ApexCharts.ApexOptions = {
     chart: {
       type: "pie",
@@ -135,7 +136,7 @@ export default function CasePieChart({
       <div className="bg-primary p-2 -mx-5 -mt-5 mb-4 flex items-center">
         <h3 className="text-lg font-semibold text-white">
           {title ||
-            `National PC Coverage ${country || "All Countries"}, ${disease} (${year})`}
+            `${title} ${country || "All Countries"}, ${disease} (${year})`}
         </h3>
         <div className="ml-auto relative">
           <button
