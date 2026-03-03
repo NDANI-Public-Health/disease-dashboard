@@ -8,6 +8,10 @@ export interface CoverageTrendItem {
   iuRequiringTreatmentPct: number;
   natSacCovPct: number;
   progSacCovPct: number;
+  progAdultCovPct: number | null;
+  progTotalCovPct: number;
+  natAdultCovPct: number;
+  natTotalCovPct: number;
 }
 
 export interface CoverageTrendResponse {

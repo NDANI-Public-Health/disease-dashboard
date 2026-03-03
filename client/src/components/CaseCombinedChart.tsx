@@ -35,6 +35,10 @@ export default function CaseCombinedChart({
     // Use coverage data from API
     const programmeSacCoverage: (number | null)[] = [];
     const nationalSacCoverage: (number | null)[] = [];
+    const progAdultCoverage: (number | null)[] = [];
+    const progTotalCoverage: (number | null)[] = [];
+    const natAdultCoverage: (number | null)[] = [];
+    const natTotalCoverage: (number | null)[] = [];
     const uisRequiringTreatment: number[] = [];
     const uisTreated: number[] = [];
     const uisAchievingEffectiveCoverage: number[] = [];
@@ -48,6 +52,10 @@ export default function CaseCombinedChart({
       // Use API data for coverage percentages
       programmeSacCoverage.push(yearCoverageData?.progSacCovPct ?? null);
       nationalSacCoverage.push(yearCoverageData?.natSacCovPct ?? null);
+      progAdultCoverage.push(yearCoverageData?.progAdultCovPct ?? null);
+      progTotalCoverage.push(yearCoverageData?.progTotalCovPct ?? null);
+      natAdultCoverage.push(yearCoverageData?.natAdultCovPct ?? null);
+      natTotalCoverage.push(yearCoverageData?.natTotalCovPct ?? null);
 
       // Use API data for IU metrics
       uisRequiringTreatment.push(yearCoverageData?.iuRequiringTreatment ?? 0);
@@ -62,6 +70,10 @@ export default function CaseCombinedChart({
       chartData: {
         programmeSacCoverage,
         nationalSacCoverage,
+        progAdultCoverage,
+        progTotalCoverage,
+        natAdultCoverage,
+        natTotalCoverage,
         uisRequiringTreatment,
         uisTreated,
         uisAchievingEffectiveCoverage,
@@ -119,6 +131,26 @@ export default function CaseCombinedChart({
         data: chartData.nationalSacCoverage,
       },
       {
+        name: "Programme Adult Coverage",
+        type: "line",
+        data: chartData.progAdultCoverage,
+      },
+      {
+        name: "Programme Total Coverage",
+        type: "line",
+        data: chartData.progTotalCoverage,
+      },
+      {
+        name: "National Adult Coverage",
+        type: "line",
+        data: chartData.natAdultCoverage,
+      },
+      {
+        name: "National Total Coverage",
+        type: "line",
+        data: chartData.natTotalCoverage,
+      },
+      {
         name: "IUs requiring treatment",
         type: "column",
         data: chartData.uisRequiringTreatment,
@@ -145,7 +177,7 @@ export default function CaseCombinedChart({
       stacked: false,
     },
     stroke: {
-      width: [3, 3, 0, 0, 0],
+      width: [3, 3, 3, 3, 3, 3, 0, 0, 0],
       curve: "smooth",
     },
     plotOptions: {
@@ -157,15 +189,19 @@ export default function CaseCombinedChart({
     colors: [
       "#d86422", // Programme SAC Coverage
       "#2ecc71", // National SAC Coverage
+      "#9b59b6", // Programme Adult Coverage
+      "#3498db", // Programme Total Coverage
+      "#e74c3c", // National Adult Coverage
+      "#f39c12", // National Total Coverage
       "#e9f1f7", // IUs requiring treatment
       "#3daeff", // IUs treated
       "#202f5d", // IUs achieving effective coverage
     ],
     fill: {
-      opacity: [1, 1, 0.85, 0.85, 0.85],
+      opacity: [1, 1, 1, 1, 1, 1, 0.85, 0.85, 0.85],
     },
     markers: {
-      size: [4, 4, 0, 0, 0],
+      size: [4, 4, 4, 4, 4, 4, 0, 0, 0],
       strokeWidth: 2,
       hover: {
         size: 6,
@@ -205,15 +241,18 @@ export default function CaseCombinedChart({
     ],
     legend: {
       position: "bottom",
-      fontSize: "11px",
+      fontSize: "9px",
+      horizontalAlign: "center",
       markers: {
-        size: 10,
-        offsetX: -4,
+        size: 5,
+        offsetX: -1,
       },
       itemMargin: {
-        horizontal: 8,
-        vertical: 4,
+        horizontal: 4,
+        vertical: 0,
       },
+      offsetY: 0,
+      floating: false,
     },
     dataLabels: {
       enabled: false,
