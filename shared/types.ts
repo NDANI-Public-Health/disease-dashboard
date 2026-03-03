@@ -54,3 +54,18 @@ export interface AggGeoCoverageResponse {
   };
   data: AggGeoCoverage[];
 }
+
+export interface AggCoverageTrend {
+  year: number;
+  progAdultCovPct: number | null;
+  progTotalCovPct: number | null;
+  natAdultCovPct: number | null;
+  natTotalCovPct: number | null;
+}
+
+export interface AggCoverageTrendsResponse {
+  meta: {
+    years: number[];
+  };
+  data: AggCoverageTrend[];
+}
