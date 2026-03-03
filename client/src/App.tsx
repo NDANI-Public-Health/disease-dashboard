@@ -8,6 +8,7 @@ import CoverageDataTable from "./components/CoverageDataTable";
 import EndemicityTable from "./components/EndemicityTable";
 import NationalCasePieChart from "./components/NationalCasePieChart";
 import PopulationCasePieChart from "./components/PopulationCasePieChart";
+import CaseDelaysChart from "./components/CaseDelaysChart";
 
 type Tab = "overview" | "progress" | "data";
 
@@ -131,17 +132,24 @@ export default function App() {
               <CaseCombinedChart
                 cases={cases}
                 country={selectedCountry}
+                year={2024}
                 disease={selectedDisease}
               />
               <CaseStackedChart
                 cases={cases}
                 disease={selectedDisease}
-                year={2026}
+                year={2024}
                 country={selectedCountry}
               />
             </div>
 
             <CaseMap cases={cases} />
+
+            <CaseDelaysChart
+              country={selectedCountry}
+              year={2024}
+              disease={selectedDisease}
+            />
           </>
         )}
       </main>
