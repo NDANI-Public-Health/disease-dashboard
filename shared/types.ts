@@ -103,3 +103,20 @@ export interface AggEffectiveRoundsResponse {
   };
   data: AggEffectiveRound[];
 }
+
+export interface AggSacCoverage {
+  year: number;
+  iuRequiringTreatment: number;
+  iuTreated: number;
+  iuEffectiveCoverage: number;
+  iuRequiringTreatmentPct: number;
+  natSacCovPct: number;
+  progSacCovPct: number;
+}
+
+export interface AggSacCoverageResponse {
+  meta: {
+    years: number[];
+  };
+  data: AggSacCoverage[];
+}
