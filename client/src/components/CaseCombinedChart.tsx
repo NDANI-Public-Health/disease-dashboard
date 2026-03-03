@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef } from "react";
 import Chart from "react-apexcharts";
 import { CaseRecord } from "../types";
+import { useCoverageData } from "../hooks/useCoverageData";
 
 interface CaseCombinedChartProps {
   cases: CaseRecord[];
@@ -19,79 +20,54 @@ export default function CaseCombinedChart({
 }: CaseCombinedChartProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const chartRef = useRef<ApexCharts | null>(null);
+  const { data: coverageData, loading } = useCoverageData({
+    country,
+    disease,
+    year,
+  });
 
-  // Process cases data to extract metrics by year
+  // Process coverage data from API
   const { categories, chartData } = useMemo(() => {
-    // Filter by disease if specified
-    let filteredCases =
-      disease && disease !== "all diseases"
-        ? cases.filter((c) => c.disease === disease)
-        : cases;
-
-    // Filter by country if specified
-    if (country) {
-      filteredCases = filteredCases.filter((c) => c.country === country);
-    }
-
-    // Get unique years and sort them
-    const years = [...new Set(filteredCases.map((c) => c.year))].sort();
+    // Generate years from 2014-2024
+    const years = Array.from({ length: 11 }, (_, i) => 2014 + i);
     const yearStrings = years.map((y) => y.toString());
 
-    // Calculate metrics for each year
-    const nationalSACCoverage: number[] = [];
-    const programSACCoverage: number[] = [];
+    // Use coverage data from API
+    const programmeSacCoverage: (number | null)[] = [];
+    const nationalSacCoverage: (number | null)[] = [];
     const uisRequiringTreatment: number[] = [];
     const uisTreated: number[] = [];
     const uisAchievingEffectiveCoverage: number[] = [];
 
-    for (const y of years) {
-      const yearCases = filteredCases.filter((c) => c.year === y);
+    for (let i = 0; i < years.length; i++) {
+      const y = years[i];
 
-      // Calculate SAC (School-Age Children) coverage metrics
-      const totalPopulation = yearCases.reduce(
-        (sum, c) => sum + c.population,
-        0,
+      // Get coverage data from API for this year
+      const yearCoverageData = coverageData.find((d) => d.year === y);
+
+      // Use API data for coverage percentages
+      programmeSacCoverage.push(yearCoverageData?.progSacCovPct ?? null);
+      nationalSacCoverage.push(yearCoverageData?.natSacCovPct ?? null);
+
+      // Use API data for IU metrics
+      uisRequiringTreatment.push(yearCoverageData?.iuRequiringTreatment ?? 0);
+      uisTreated.push(yearCoverageData?.iuTreated ?? 0);
+      uisAchievingEffectiveCoverage.push(
+        yearCoverageData?.iuEffectiveCoverage ?? 0,
       );
-      const totalCases = yearCases.reduce((sum, c) => sum + c.cases, 0);
-      const totalUIs = yearCases.length;
-
-      // National SAC coverage (percentage of population covered)
-      const nationalCoverage =
-        totalPopulation > 0 ? (totalCases / totalPopulation) * 100 : 0;
-      nationalSACCoverage.push(Math.min(nationalCoverage, 100));
-
-      // Program SAC coverage (slightly higher, representing program targets)
-      const programCoverage = Math.min(nationalCoverage * 1.15, 100);
-      programSACCoverage.push(programCoverage);
-
-      // UIs requiring treatment (count)
-      const uisNeedingTreatment = yearCases.filter(
-        (c) => c.prevalence >= 0.01,
-      ).length;
-      uisRequiringTreatment.push(uisNeedingTreatment);
-
-      // UIs treated (count of UIs with cases > 0)
-      const uisTreatedCount = yearCases.filter((c) => c.cases > 0).length;
-      uisTreated.push(uisTreatedCount);
-
-      // UIs achieving effective coverage (>75% coverage)
-      const uisEffective = yearCases.filter(
-        (c) => c.population > 0 && c.cases / c.population >= 0.75,
-      ).length;
-      uisAchievingEffectiveCoverage.push(uisEffective);
     }
 
     return {
       categories: yearStrings,
       chartData: {
-        nationalSACCoverage,
-        programSACCoverage,
+        programmeSacCoverage,
+        nationalSacCoverage,
         uisRequiringTreatment,
         uisTreated,
         uisAchievingEffectiveCoverage,
       },
     };
-  }, [cases, disease, country]);
+  }, [coverageData]);
 
   const handleDownloadImage = () => {
     if (chartRef.current) {
@@ -133,27 +109,27 @@ export default function CaseCombinedChart({
   const series = useMemo(
     () => [
       {
-        name: "National SAC coverage",
+        name: "Programme SAC Coverage",
         type: "line",
-        data: chartData.nationalSACCoverage,
+        data: chartData.programmeSacCoverage,
       },
       {
-        name: "Program SAC Coverage",
+        name: "National SAC Coverage",
         type: "line",
-        data: chartData.programSACCoverage,
+        data: chartData.nationalSacCoverage,
       },
       {
-        name: "UIs requiring treatment",
+        name: "IUs requiring treatment",
         type: "column",
         data: chartData.uisRequiringTreatment,
       },
       {
-        name: "UIs treated",
+        name: "IUs treated",
         type: "column",
         data: chartData.uisTreated,
       },
       {
-        name: "UIs achieving effective coverage",
+        name: "IUs achieving effective coverage",
         type: "column",
         data: chartData.uisAchievingEffectiveCoverage,
       },
@@ -179,11 +155,11 @@ export default function CaseCombinedChart({
       },
     },
     colors: [
-      "#d86422", // National SAC coverage
-      "#fac916", // Program SAC Coverage
-      "#e9f1f7", // UIs requiring treatment
-      "#3daeff", // UIs treated
-      "#202f5d", // UIs achieving effective coverage
+      "#d86422", // Programme SAC Coverage
+      "#2ecc71", // National SAC Coverage
+      "#e9f1f7", // IUs requiring treatment
+      "#3daeff", // IUs treated
+      "#202f5d", // IUs achieving effective coverage
     ],
     fill: {
       opacity: [1, 1, 0.85, 0.85, 0.85],
@@ -203,8 +179,9 @@ export default function CaseCombinedChart({
     },
     yaxis: [
       {
+        opposite: true,
         title: {
-          text: "Number Implementation Units",
+          text: "Coverage (%)",
           style: { fontSize: "12px", fontWeight: 600 },
         },
         labels: {
@@ -215,9 +192,8 @@ export default function CaseCombinedChart({
         max: 100,
       },
       {
-        opposite: true,
         title: {
-          text: "Coverage",
+          text: "Number of Implementation Units",
           style: { fontSize: "12px", fontWeight: 600 },
         },
         labels: {
@@ -247,10 +223,12 @@ export default function CaseCombinedChart({
       intersect: false,
       y: {
         formatter: (val: number, { seriesIndex }) => {
+          // First 2 series are coverage lines (percentages)
           if (seriesIndex < 2) {
-            return `${val.toFixed(1)}%`;
+            return val !== null ? `${val.toFixed(1)}%` : "N/A";
           }
-          return val.toFixed(0) + " UIs";
+          // Last 3 series are implementation units (numbers)
+          return val.toFixed(0) + " IUs";
         },
       },
     },
@@ -260,12 +238,27 @@ export default function CaseCombinedChart({
     },
   };
 
+  if (loading) {
+    return (
+      <div className="chart-container overflow-hidden">
+        <div className="bg-primary p-2 -mx-5 -mt-5 mb-4">
+          <h3 className="text-lg font-semibold text-white">
+            {title || `PC Coverage Trends Over Time`}
+          </h3>
+        </div>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="chart-container overflow-hidden">
       <div className="bg-primary p-2 -mx-5 -mt-5 mb-4 flex items-center">
         <h3 className="text-lg font-semibold text-white">
           {title ||
-            `SAC Coverage & Treatment Progress ${country ? `- ${country}` : ""}, ${disease}${year ? ` (${year})` : ""}`}
+            `PC Coverage Trends Over Time ${country ? `- ${country}` : ""}, ${disease}${year ? ` (${year})` : ""}`}
         </h3>
         <div className="ml-auto relative">
           <button

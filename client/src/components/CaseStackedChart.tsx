@@ -1,6 +1,7 @@
 import { useMemo, useState, useRef } from "react";
 import Chart from "react-apexcharts";
 import { CaseRecord } from "../types";
+import { useEndemicityData } from "../hooks/useEndimicityData";
 
 interface CaseStackedChartProps {
   cases: CaseRecord[];
@@ -19,54 +20,48 @@ export default function CaseStackedChart({
 }: CaseStackedChartProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const chartRef = useRef<ApexCharts | null>(null);
+  const {
+    data: endemicityData,
+    endemicityLevels,
+    loading,
+  } = useEndemicityData({
+    year,
+    disease,
+    country,
+  });
 
-  // Process cases data to extract prevalence categories by year
-  const { categories, chartData } = useMemo(() => {
-    // Filter by disease if specified
-    let filteredCases =
-      disease && disease !== "all diseases"
-        ? cases.filter((c) => c.disease === disease)
-        : cases;
-
-    // Get unique years and sort them
-    const years = [...new Set(filteredCases.map((c) => c.year))].sort();
+  // Process endemicity data from API
+  const { categories, chartData, colorMap } = useMemo(() => {
+    // Generate years from 2014-2024
+    const years = Array.from({ length: 11 }, (_, i) => 2014 + i);
     const yearStrings = years.map((y) => y.toString());
 
-    // Calculate prevalence distribution for each year
+    // Get unique endemicity levels and their colors from the API data
+    const levelColorMap: Record<string, string> = {};
+    endemicityData.forEach((item) => {
+      if (!levelColorMap[item.endemicityLevel]) {
+        levelColorMap[item.endemicityLevel] = item.colorHex;
+      }
+    });
+
+    // Calculate IU counts for each endemicity level by year
     const highPrevalence: number[] = [];
     const moderatePrevalence: number[] = [];
     const lowPrevalence: number[] = [];
-    const postIA50Plus: number[] = [];
-    const postIA10to49: number[] = [];
-    const postIA1to9: number[] = [];
-    const surveillance: number[] = [];
+    const nonEndemic: number[] = [];
 
     for (const y of years) {
-      const yearCases = filteredCases.filter((c) => c.year === y);
-      const total = yearCases.length || 1;
+      const yearData = endemicityData.filter((d) => d.year === y);
 
-      // Categorize based on prevalence percentage
-      const high = yearCases.filter((c) => c.prevalence >= 0.5).length;
-      const moderate = yearCases.filter(
-        (c) => c.prevalence >= 0.1 && c.prevalence < 0.5,
-      ).length;
-      const low = yearCases.filter(
-        (c) => c.prevalence >= 0.01 && c.prevalence < 0.1,
-      ).length;
-      const surv = yearCases.filter((c) => c.prevalence < 0.01).length;
+      const high = yearData.find((d) => d.endemicityLevel === "High");
+      const moderate = yearData.find((d) => d.endemicityLevel === "Moderate");
+      const low = yearData.find((d) => d.endemicityLevel === "Low");
+      const nonEnd = yearData.find((d) => d.endemicityLevel === "Non-endemic");
 
-      // For post-IA categories, using mock distribution based on existing data
-      const postHigh = Math.floor(high * 0.3);
-      const postMod = Math.floor(moderate * 0.4);
-      const postLow = Math.floor(low * 0.2);
-
-      highPrevalence.push((high / total) * 100);
-      moderatePrevalence.push((moderate / total) * 100);
-      lowPrevalence.push((low / total) * 100);
-      postIA50Plus.push((postHigh / total) * 100);
-      postIA10to49.push((postMod / total) * 100);
-      postIA1to9.push((postLow / total) * 100);
-      surveillance.push((surv / total) * 100);
+      highPrevalence.push(high?.iuRequiringPc ?? 0);
+      moderatePrevalence.push(moderate?.iuRequiringPc ?? 0);
+      lowPrevalence.push(low?.iuRequiringPc ?? 0);
+      nonEndemic.push(nonEnd?.iuRequiringPc ?? 0);
     }
 
     return {
@@ -75,13 +70,11 @@ export default function CaseStackedChart({
         highPrevalence,
         moderatePrevalence,
         lowPrevalence,
-        postIA50Plus,
-        postIA10to49,
-        postIA1to9,
-        surveillance,
+        nonEndemic,
       },
+      colorMap: levelColorMap,
     };
-  }, [cases, disease]);
+  }, [endemicityData]);
 
   const handleDownloadImage = () => {
     if (chartRef.current) {
@@ -135,20 +128,8 @@ export default function CaseStackedChart({
         data: chartData.lowPrevalence,
       },
       {
-        name: ">=50% post-IA prevalence",
-        data: chartData.postIA50Plus,
-      },
-      {
-        name: "10-49% post-IA prevalence",
-        data: chartData.postIA10to49,
-      },
-      {
-        name: "1-9.9% post-IA prevalence",
-        data: chartData.postIA1to9,
-      },
-      {
-        name: "Surveillance (prevalence <1%)",
-        data: chartData.surveillance,
+        name: "Non-endemic",
+        data: chartData.nonEndemic,
       },
     ],
     [chartData],
@@ -158,7 +139,6 @@ export default function CaseStackedChart({
     chart: {
       type: "bar",
       stacked: true,
-      stackType: "100%",
       fontFamily: "inherit",
       toolbar: { show: false },
     },
@@ -170,13 +150,10 @@ export default function CaseStackedChart({
       },
     },
     colors: [
-      "#ef0001", // High prevalence (50% and above)
-      "#fcea00", // Moderate prevalence (10%-49%)
-      "#f64ab6", // Low prevalence (less than 10%)
-      "#202f5d", // >=50% post-IA prevalence
-      "#296790", // 10-49% post-IA prevalence
-      "#ffffdf", // 1-9.9% post-IA prevalence
-      "#3daeff", // Surveillance (prevalence <1%)
+      colorMap["High"] || "#c62828", // High prevalence (50% and above)
+      colorMap["Moderate"] || "#ffb300", // Moderate prevalence (10%-49%)
+      colorMap["Low"] || "#fff176", // Low prevalence (less than 10%)
+      colorMap["Non-endemic"] || "#b0bec5", // Non-endemic
     ],
     xaxis: {
       categories,
@@ -186,11 +163,11 @@ export default function CaseStackedChart({
     },
     yaxis: {
       title: {
-        text: "Number Implementation Units",
+        text: "Number of Implementation Units",
         style: { fontSize: "12px", fontWeight: 600 },
       },
       labels: {
-        formatter: (val: number) => `${val.toFixed(0)}%`,
+        formatter: (val: number) => val.toFixed(0),
         style: { fontSize: "12px" },
       },
     },
@@ -211,7 +188,7 @@ export default function CaseStackedChart({
     },
     tooltip: {
       y: {
-        formatter: (val: number) => `${val.toFixed(1)}%`,
+        formatter: (val: number) => `${val.toFixed(0)} IUs`,
       },
     },
     grid: {
@@ -223,6 +200,21 @@ export default function CaseStackedChart({
       colors: ["#fff"],
     },
   };
+
+  if (loading) {
+    return (
+      <div className="chart-container overflow-hidden">
+        <div className="bg-primary p-2 -mx-5 -mt-5 mb-4">
+          <h3 className="text-lg font-semibold text-white">
+            {title || `Endemicity status across all endemic IUs`}
+          </h3>
+        </div>
+        <div className="flex items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="chart-container overflow-hidden">

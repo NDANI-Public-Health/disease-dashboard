@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
-import { CaseRecord } from '../types';
+import { useMemo } from "react";
+import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
+import { CaseRecord } from "../types";
 
 interface CaseMapProps {
   cases: CaseRecord[];
@@ -8,18 +8,18 @@ interface CaseMapProps {
 
 // Approximate center coordinates for African countries
 const countryCoords: Record<string, [number, number]> = {
-  'Nigeria': [9.08, 7.49],
-  'DRC': [-4.04, 21.76],
-  'Ethiopia': [9.15, 40.49],
-  'Tanzania': [-6.37, 34.89],
-  'Kenya': [-0.02, 37.91],
-  'Ghana': [7.95, -1.02],
-  'Cameroon': [7.37, 12.35],
-  'Mozambique': [-18.67, 35.53],
-  'Uganda': [1.37, 32.29],
-  'Mali': [17.57, -4.0],
-  'Burkina Faso': [12.36, -1.52],
-  'Niger': [17.61, 8.08],
+  Nigeria: [9.08, 7.49],
+  DRC: [-4.04, 21.76],
+  Ethiopia: [9.15, 40.49],
+  Tanzania: [-6.37, 34.89],
+  Kenya: [-0.02, 37.91],
+  Ghana: [7.95, -1.02],
+  Cameroon: [7.37, 12.35],
+  Mozambique: [-18.67, 35.53],
+  Uganda: [1.37, 32.29],
+  Mali: [17.57, -4.0],
+  "Burkina Faso": [12.36, -1.52],
+  Niger: [17.61, 8.08],
 };
 
 export default function CaseMap({ cases }: CaseMapProps) {
@@ -38,9 +38,9 @@ export default function CaseMap({ cases }: CaseMapProps) {
       <h3>Geographic Distribution</h3>
       <div className="map-wrapper">
         <MapContainer
-          center={[5, 20]}
-          zoom={3}
-          style={{ height: '100%', width: '100%' }}
+          center={[9.08, 8.68]}
+          zoom={6}
+          style={{ height: "100%", width: "100%" }}
           scrollWheelZoom={false}
         >
           <TileLayer
@@ -58,9 +58,9 @@ export default function CaseMap({ cases }: CaseMapProps) {
                 center={coords}
                 radius={radius}
                 pathOptions={{
-                  fillColor: '#0779bf',
+                  fillColor: "#0779bf",
                   fillOpacity: opacity,
-                  color: '#065f96',
+                  color: "#065f96",
                   weight: 1,
                 }}
               >
