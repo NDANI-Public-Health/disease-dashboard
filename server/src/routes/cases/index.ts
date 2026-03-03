@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { mockData, countries, diseases } from '../data/mockData';
+import { mockData, countries, diseases } from '../../data/mockData';
 
 const router = Router();
 

@@ -3,6 +3,12 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import casesRouter from './routes/cases';
+import aggKeyStatsRouter from './routes/aggKeyStats';
+import aggGeoCoverageRouter from './routes/aggGeoCoverage';
+import aggCoverageTrendsRouter from './routes/aggCoverageTrends';
+import aggSupplyDelayRouter from './routes/aggSupplyDelay';
+import aggEffectiveRoundsRouter from './routes/aggEffectiveRounds';
+import aggSacCoverageRouter from './routes/aggSacCoverage';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -12,6 +18,12 @@ app.use(express.json());
 
 // API routes
 app.use('/api', casesRouter);
+app.use('/api', aggKeyStatsRouter);
+app.use('/api', aggGeoCoverageRouter);
+app.use('/api', aggCoverageTrendsRouter);
+app.use('/api', aggSupplyDelayRouter);
+app.use('/api', aggEffectiveRoundsRouter);
+app.use('/api', aggSacCoverageRouter);
 
 // Serve static files in production
 const clientDist = path.join(__dirname, '../../client/dist');
