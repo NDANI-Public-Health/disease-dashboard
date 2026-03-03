@@ -30,6 +30,8 @@ export default function App() {
     setSelectedCountry,
     setSelectedDisease,
     loading,
+    setSelectedYear,
+    selectedYear,
   } = useDashboardData();
 
   const tabs: { key: Tab; label: string }[] = [
@@ -49,6 +51,8 @@ export default function App() {
             selectedDisease={selectedDisease}
             onCountryChange={setSelectedCountry}
             onDiseaseChange={setSelectedDisease}
+            setSelectedYear={setSelectedYear}
+            selectedYear={selectedYear}
           />
           <div className="flex items-center gap-4 ml-auto shrink-0">
             <span className="text-gray-700 font-medium">Dashboard</span>
@@ -93,12 +97,12 @@ export default function App() {
               <CoverageDataTable
                 country={selectedCountry}
                 disease={selectedDisease}
-                year={2024}
+                year={selectedYear}
               />
               <EndemicityTable
                 country={selectedCountry}
                 disease={selectedDisease}
-                year={2024}
+                year={selectedYear}
               />
               {/* <DemographicsTable cases={cases} year={2026} /> */}
             </div>
@@ -106,7 +110,7 @@ export default function App() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <NationalCasePieChart
                 cases={cases}
-                year={2024}
+                year={selectedYear}
                 title="National PC Coverage"
                 labels={[
                   "Population requiring PC that received PC",
@@ -117,7 +121,7 @@ export default function App() {
               />
               <PopulationCasePieChart
                 cases={cases}
-                year={2024}
+                year={selectedYear}
                 title="Population requiring PC that received PC vs. Population that was target for PC"
                 labels={[
                   "Total population that was target for PC",

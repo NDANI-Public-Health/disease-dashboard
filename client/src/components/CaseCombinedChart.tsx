@@ -258,7 +258,7 @@ export default function CaseCombinedChart({
       <div className="bg-primary p-2 -mx-5 -mt-5 mb-4 flex items-center">
         <h3 className="text-lg font-semibold text-white">
           {title ||
-            `PC Coverage Trends Over Time ${country ? `- ${country}` : ""}, ${disease}${year ? ` (${year})` : ""}`}
+            `PC Coverage Trends Over Time ${country ? `- ${country}` : ""}, ${disease}`}
         </h3>
         <div className="ml-auto relative">
           <button

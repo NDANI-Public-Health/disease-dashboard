@@ -27,17 +27,15 @@ const formatNumber = (num: number): string => {
 };
 
 export default function CoverageDataTable({
-  selectedYear,
+  year,
   country,
   disease,
 }: CoverageDataTableProps) {
   const { data: coverageData, loading } = useAggregateData({
     country,
     disease,
-    year: selectedYear,
+    year: year,
   });
-
-  const [year, setYear] = useState<number>(selectedYear || 2024);
 
   const tableData = useMemo(() => {
     const filterYear = year || 2024;
@@ -82,17 +80,6 @@ export default function CoverageDataTable({
         <h2 className="text-xl font-bold text-white tracking-wide">
           Key Statistics
         </h2>
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-white/50 transition-all cursor-pointer hover:bg-white/30"
-        >
-          {years.map((y) => (
-            <option key={y} value={y} className="text-gray-800">
-              {y}
-            </option>
-          ))}
-        </select>
       </div>
 
       {loading ? (

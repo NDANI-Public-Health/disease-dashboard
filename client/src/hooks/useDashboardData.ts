@@ -11,6 +11,8 @@ interface DashboardData {
   setSelectedCountry: (country: string) => void;
   setSelectedDisease: (disease: string) => void;
   loading: boolean;
+  setSelectedYear: (year: number) => void;
+  selectedYear: number;
 }
 
 export function useDashboardData(): DashboardData {
@@ -25,6 +27,7 @@ export function useDashboardData(): DashboardData {
   });
   const [selectedCountry, setSelectedCountry] = useState("Nigeria");
   const [selectedDisease, setSelectedDisease] = useState("Schistosomiasis");
+  const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [loading, setLoading] = useState(true);
 
   // Fetch filter options on mount
@@ -70,5 +73,7 @@ export function useDashboardData(): DashboardData {
     setSelectedCountry,
     setSelectedDisease,
     loading,
+    setSelectedYear,
+    selectedYear,
   };
 }

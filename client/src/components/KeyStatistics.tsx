@@ -16,13 +16,6 @@ const DemographicsTable = ({ cases, year }: DemographicsTableProps) => {
       {/* Header with year selector - primary color */}
       <div className="flex items-center justify-between p-2 bg-primary text-white">
         <h2 className="text-lg font-semibold">Key statistics for </h2>
-        <select className="px-3 py-2 border border-blue-400 rounded-md text-sm bg-yellow-500 text-white focus:outline-none focus:ring-2 focus:ring-blue-300">
-          {years.map((year) => (
-            <option key={year} value={year} defaultValue={year}>
-              {year}
-            </option>
-          ))}
-        </select>
       </div>
       {/* Two column layout with vertical divider */}
       <div className="flex">

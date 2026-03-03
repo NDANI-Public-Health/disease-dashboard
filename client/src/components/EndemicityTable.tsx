@@ -17,16 +17,11 @@ interface EndemicityTableProps {
   year?: number;
 }
 
-const years = [
-  2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014,
-];
-
 export default function EndemicityTable({
-  year: selectedYear,
+  year,
   disease,
   country,
 }: EndemicityTableProps) {
-  const [year, setYear] = useState<number>(selectedYear || 2024);
   const {
     data: endemicityData,
     endemicityLevels,
@@ -36,6 +31,8 @@ export default function EndemicityTable({
     disease,
     country,
   });
+
+  console.log("year", year);
 
   const { tableData, totals } = useMemo(() => {
     // Filter by year and only include High and Moderate endemicity levels
@@ -72,21 +69,10 @@ export default function EndemicityTable({
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-primary to-primary/80">
+      <div className="flex items-center justify-between px-6 py-4 bg-primary">
         <h2 className="text-xl font-bold text-white tracking-wide">
           Endemicity by IUs & Geographic Coverage
         </h2>
-        <select
-          value={year}
-          onChange={(e) => setYear(Number(e.target.value))}
-          className="px-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-white/50 transition-all cursor-pointer hover:bg-white/30"
-        >
-          {years.map((y) => (
-            <option key={y} value={y} className="text-gray-800">
-              {y}
-            </option>
-          ))}
-        </select>
       </div>
 
       {/* Table */}
